@@ -1,39 +1,27 @@
 CREATE OR REPLACE FUNCTION get_squad_clones(squad_number integer)
-    RETURNS TABLE
-            (
-                number       integer,
-                batch_number integer
-            )
+    RETURNS SETOF clones
 AS
 $$
-SELECT number, batch_number
+SELECT *
 FROM clones
 WHERE squad_id = squad_number;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_regiment_clones(regiment_number integer)
-    RETURNS TABLE
-            (
-                number       integer,
-                batch_number integer
-            )
+    RETURNS SETOF clones
 AS
 $$
-SELECT number, batch_number
+SELECT number, clones.name, birthday, batch_number, squad_id
 FROM clones
          INNER JOIN squads ON clones.squad_id = squads.id
 WHERE regiment_id = regiment_number;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_army_clones(army_number integer)
-    RETURNS TABLE
-            (
-                number       integer,
-                batch_number integer
-            )
+    RETURNS SETOF clones
 AS
 $$
-SELECT number, batch_number
+SELECT number, clones.name, birthday, batch_number, squad_id
 FROM clones
          INNER JOIN squads ON clones.squad_id = squads.id
          INNER JOIN regiments ON squads.regiment_id = regiments.id
@@ -41,30 +29,20 @@ WHERE army_id = army_number;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_regiment_commanders(regiment_number integer)
-    RETURNS TABLE
-            (
-                number       integer,
-                name         varchar,
-                batch_number integer
-            )
+    RETURNS SETOF commanders
 AS
 $$
-SELECT number, commanders.name, batch_number
+SELECT number, commanders.name, birthday, batch_number, squad_id
 FROM commanders
          INNER JOIN squads ON commanders.squad_id = squads.id
 WHERE regiment_id = regiment_number;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_army_commanders(army_number integer)
-    RETURNS TABLE
-            (
-                number       integer,
-                name         varchar,
-                batch_number integer
-            )
+    RETURNS SETOF commanders
 AS
 $$
-SELECT number, commanders.name, batch_number
+SELECT number, commanders.name, birthday, batch_number, squad_id
 FROM commanders
          INNER JOIN squads ON commanders.squad_id = squads.id
          INNER JOIN regiments ON squads.regiment_id = regiments.id
@@ -72,94 +50,56 @@ WHERE army_id = army_number;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_army_colonels(army_number integer)
-    RETURNS TABLE
-            (
-                number       integer,
-                name         varchar,
-                batch_number integer
-            )
+    RETURNS SETOF colonels
 AS
 $$
-SELECT number, colonels.name, batch_number
+SELECT number, colonels.name, birthday, batch_number, regiment_id
 FROM colonels
          INNER JOIN regiments ON colonels.regiment_id = regiments.id
 WHERE army_id = army_number;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_regiment_vehicles(regiment_number integer)
-    RETURNS TABLE
-            (
-                series           varchar,
-                model            varchar,
-                commander_number integer
-            )
+    RETURNS SETOF vehicles
 AS
 $$
-SELECT series, model, commander_number
+SELECT *
 FROM vehicles
 WHERE regiment_id = regiment_number;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_army_vehicles(army_number integer)
-    RETURNS TABLE
-            (
-                series           varchar,
-                model            varchar,
-                commander_number integer
-            )
+    RETURNS SETOF vehicles
 AS
 $$
-SELECT series, model, commander_number
+SELECT vehicles.id, series, model, regiment_id, commander_number
 FROM vehicles
          INNER JOIN regiments ON vehicles.regiment_id = regiments.id
 WHERE army_id = army_number;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_jedi()
-    RETURNS TABLE
-            (
-                name        varchar,
-                race        varchar,
-                male        boolean,
-                army_number integer
-            )
+    RETURNS SETOF jedi
 AS
 $$
-SELECT name, race, male, army_id
+SELECT *
 FROM jedi;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_planets(system varchar)
-    RETURNS TABLE
-            (
-                name                varchar,
-                habitable           boolean,
-                satellites          integer,
-                diameter            integer,
-                republic_controlled boolean
-            )
+    RETURNS SETOF planets
 AS
 $$
-SELECT name, habitable, satellites, diameter, republic_controlled
+SELECT *
 FROM planets
 WHERE system_name = system;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_battles(system varchar)
-    RETURNS TABLE
-            (
-                id             integer,
-                name           varchar,
-                date           date,
-                victory        boolean,
-                space          boolean,
-                soldier_losses integer,
-                vehicle_losses integer,
-                planet_name    varchar
-            )
+    RETURNS SETOF battles
 AS
 $$
-SELECT battles.id,
+SELECT id,
        battles.name,
        date,
        victory,
@@ -173,14 +113,10 @@ WHERE system_name = system;
 $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION get_battle_regiments(battle integer)
-    RETURNS TABLE
-            (
-                name    varchar,
-                army_id integer
-            )
+    RETURNS SETOF regiments
 AS
 $$
-SELECT name, army_id
+SELECT id, name, army_id, planet_name
 FROM battle_participation
          INNER JOIN regiments ON battle_participation.regiment_id = regiments.id
 WHERE battle_id = battle;
